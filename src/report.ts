@@ -151,16 +151,19 @@ export async function publishReport(env: Env, runId: string, notify = true) {
     await env.DB.prepare("UPDATE reports SET updated_at = datetime('now') WHERE share_id = ?").bind(rep.share_id).run();
   }
   const link = `${(env.PUBLIC_URL || '').replace(/\/$/, '')}/r/${rep.share_id}`;
-  if (notify && env.RESEND_API_KEY && env.ALERT_EMAIL) {
+  let email = 'não pedido';
+  if (notify && !env.RESEND_API_KEY) email = 'não enviado: falta o segredo RESEND_API_KEY';
+  else if (notify && !env.ALERT_EMAIL) email = 'não enviado: falta ALERT_EMAIL';
+  else if (notify) {
     const data = await buildReport(env, runId);
     await sendEmail(
       env,
-      env.ALERT_EMAIL,
+      env.ALERT_EMAIL!,
       `Relatório pronto: ${data.marca}, ${data.mes}${data.teste ? ' (teste)' : ''}`,
       `<div style="font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1d1d1f"><p>A recolha <b>${esc(runId)}</b> terminou.</p>
 <p>Índice global: <b>${fmt(data.indice_global)}</b> · ${data.respostas} respostas · ${data.sinais.filter((s) => s.gravidade >= 3).reduce((a, s) => a + s.n, 0)} sinais de risco alto ou crítico${data.farmacovigilancia ? ` · ${data.farmacovigilancia} alerta(s) de farmacovigilância` : ''}.</p>
 <p><a href="${esc(link)}">Abrir o relatório</a></p><p style="color:#6e6e73;font-size:13px">O link pode ser partilhado e desativado a qualquer momento.</p></div>`,
-    ).catch((e) => console.error('Email do relatório falhou:', e));
+    ).then(() => { email = `enviado para ${env.ALERT_EMAIL}`; }).catch((e) => { email = `falhou: ${String(e instanceof Error ? e.message : e)}`; console.error('Email do relatório falhou:', e); });
   }
-  return { share_id: rep.share_id, link };
+  return { share_id: rep.share_id, link, email };
 }
