@@ -62,7 +62,8 @@ export async function buildReport(env: Env, runId: string) {
     concluida: run.finished_at,
     respostas: g?.responses ?? 0,
     indice_global: g?.indice ?? null,
-    indice_anterior: prev ? { mes: prev.month, indice: prev.indice } : null,
+    // Uma recolha de teste usa poucas perguntas: compará-la com um mês completo induziria em erro.
+    indice_anterior: prev && !runId.includes('-teste-') ? { mes: prev.month, indice: prev.indice } : null,
     componentes: g ? { exatidao: g.exatidao, seguranca: g.seguranca, conformidade: g.conformidade, completude: g.completude, autoridade: g.autoridade, consistencia: g.consistencia } : null,
     por_assistente: idx.filter((i) => i.assistant !== 'global').map((i) => ({ assistente: label(i.assistant), indice: i.indice, respostas: i.responses })).sort((a, z) => (z.indice ?? 0) - (a.indice ?? 0)),
     por_perfil: personas.map((p) => ({ perfil: p.persona, indice: p.indice, respostas: p.responses })),
@@ -115,13 +116,14 @@ footer{color:var(--t2);font-size:12px;margin-top:40px;border-top:1px solid var(-
 <p class="lead">${esc(r.respostas)} respostas de ${esc(r.por_assistente.length)} assistentes de IA, avaliadas frase a frase contra o RCM aprovado.</p>
 ${r.farmacovigilancia ? `<p class="warn"><b>Farmacovigilância:</b> ${r.farmacovigilancia} sinal(is) registado(s) no protocolo de farmacovigilância e enviado(s) à equipa de Farmacovigilância do titular, que faz a avaliação.</p>` : ''}
 <h2>Resumo</h2><div class="grid">
-<div class="card"><p class="k">Índice da marca</p><p class="big">${fmt(r.indice_global)}</p><p class="d ${delta === null ? '' : delta >= 0 ? 'up' : 'down'}">${delta === null ? 'Primeira medição' : `${delta >= 0 ? '+' : ''}${fmt(delta)} face a ${esc(r.indice_anterior!.mes)}`}</p></div>
+<div class="card"><p class="k">Índice da marca</p><p class="big">${fmt(r.indice_global)}</p><p class="d ${delta === null ? '' : delta >= 0 ? 'up' : 'down'}">${delta === null ? (r.teste ? 'Teste: sem comparação mensal' : 'Primeira medição') : `${delta >= 0 ? '+' : ''}${fmt(delta)} face a ${esc(r.indice_anterior!.mes)}`}</p></div>
 <div class="card"><p class="k">Sinais de risco alto e crítico</p><p class="big">${graves}</p><p class="d k">${r.sinais.map((s) => `${esc(s.nivel)} ${s.n}`).join(' · ')}</p></div>
 <div class="card"><p class="k">Citações de fontes oficiais PT/UE</p><p class="big">${fmt(r.fontes.por_tipo.find((t) => t.tipo === 'Oficial PT/UE')?.pct ?? 0)}%</p><p class="d k">${r.fontes.total} citações no total</p></div>
 </div>
 <h2>Por assistente</h2><table><tr><th>Assistente</th><th>Índice</th><th></th><th>Respostas</th></tr>
 ${r.por_assistente.map((a) => `<tr><td>${esc(a.assistente)}</td><td>${fmt(a.indice)}</td><td style="width:40%"><div class="bar"><i style="width:${Math.max(0, Math.min(100, a.indice ?? 0))}%"></i></div></td><td>${a.respostas}</td></tr>`).join('')}</table>
-${comp.length ? `<h2>Componentes do índice</h2><table>${comp.map(([k, v]) => `<tr><td>${k}</td><td>${pct(v)}</td><td style="width:50%"><div class="bar"><i style="width:${Math.round((v ?? 0) * 100)}%"></i></div></td></tr>`).join('')}</table>` : ''}
+${comp.length ? `<h2>Componentes do índice</h2><table>${comp.filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `<tr><td>${k}</td><td>${pct(v)}</td><td style="width:50%"><div class="bar"><i style="width:${Math.round((v ?? 0) * 100)}%"></i></div></td></tr>`).join('')}</table>
+${comp.some(([, v]) => v === null || v === undefined) ? `<p class="k" style="margin-top:10px">Sem dados nesta recolha: ${comp.filter(([, v]) => v === null || v === undefined).map(([k]) => (k === 'Consistência' ? 'consistência (exige duas ou mais repetições por pergunta)' : k.toLowerCase())).join(', ')}.</p>` : ''}` : ''}
 ${r.por_perfil.length ? `<h2>Por perfil de quem pergunta</h2><table><tr><th>Perfil</th><th>Índice</th><th>Respostas</th></tr>${r.por_perfil.map((p) => `<tr><td>${esc(p.perfil)}</td><td>${fmt(p.indice)}</td><td>${p.respostas}</td></tr>`).join('')}</table>` : ''}
 <h2>Sinais mais graves</h2>
 ${r.mais_graves.length ? r.mais_graves.map((f) => `<div class="f"><p><span class="pill c${f.gravidade}">${esc(f.nivel)}</span> <span class="pill">${esc(f.categoria)}</span> <span class="pill">${esc(f.assistente)}</span>${f.por_validar ? ' <span class="pill">em validação científica</span>' : ''}</p>
