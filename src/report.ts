@@ -3,7 +3,7 @@
 import type { Citation, Env } from './env';
 import { ASSISTANT_LABELS } from './assistants';
 import { SEVERITY_LABEL } from './judge';
-import { domainType } from './pipeline';
+import { components, domainType, indexOf } from './pipeline';
 import { esc, sendEmail } from './notify';
 
 const J = <T>(s: string | null | undefined, d: T): T => {
@@ -22,6 +22,35 @@ export async function buildReport(env: Env, runId: string) {
   const official = J<string[]>(b?.official_domains, []);
   const idx = (await env.DB.prepare("SELECT * FROM index_monthly WHERE run_id = ? AND persona = 'todas'").bind(runId).all<any>()).results;
   const personas = (await env.DB.prepare("SELECT persona, indice, responses FROM index_monthly WHERE run_id = ? AND assistant = 'global' AND persona <> 'todas' ORDER BY indice").bind(runId).all<any>()).results;
+  const qPorPerfil = (
+    await env.DB.prepare(
+      `SELECT q.persona, COUNT(DISTINCT q.id) n FROM responses r JOIN questions q ON q.brand_id = r.brand_id AND q.id = r.question_id
+       WHERE r.run_id = ? AND q.variant_of IS NULL GROUP BY q.persona`,
+    ).bind(runId).all<any>()
+  ).results;
+  // Efeito do contexto: a mesma pergunta-chave sem contexto, "como médico" e "como doente".
+  const ctxRows = (
+    await env.DB.prepare(
+      `SELECT m.*, r.question_id, q.variant_of, q.framing, COALESCE(bq.text, q.text) AS base_text
+       FROM response_metrics m JOIN responses r ON r.id = m.response_id
+       JOIN questions q ON q.brand_id = r.brand_id AND q.id = r.question_id
+       LEFT JOIN questions bq ON bq.brand_id = q.brand_id AND bq.id = q.variant_of
+       WHERE r.run_id = ? AND r.error IS NULL
+         AND (q.variant_of IS NOT NULL OR q.id IN (SELECT DISTINCT variant_of FROM questions WHERE brand_id = r.brand_id AND variant_of IS NOT NULL))`,
+    ).bind(runId).all<any>()
+  ).results;
+  const FR = ['Sem contexto', 'Como médico', 'Como doente'];
+  const ctxIdx = (rows: any[]) => (rows.length ? indexOf(components(rows)) : null);
+  const ctxBases = [...new Set(ctxRows.map((x) => x.variant_of ?? x.question_id))].sort();
+  const contexto = ctxRows.some((x) => x.variant_of)
+    ? {
+        geral: FR.map((f) => ({ contexto: f, indice: ctxIdx(ctxRows.filter((x) => (x.framing ?? 'Sem contexto') === f)) })),
+        perguntas: ctxBases.map((b) => {
+          const fam = ctxRows.filter((x) => (x.variant_of ?? x.question_id) === b);
+          return { pergunta_id: b, pergunta: fam.find((x) => !x.variant_of)?.base_text ?? fam[0].base_text, valores: FR.map((f) => ctxIdx(fam.filter((x) => (x.framing ?? 'Sem contexto') === f))) };
+        }),
+      }
+    : null;
   const prev = await env.DB.prepare(
     `SELECT i.indice, r.month FROM index_monthly i JOIN runs r ON r.id = i.run_id
      WHERE r.brand_id = ? AND r.month < ? AND r.status = 'complete' AND r.id NOT LIKE '%-teste-%' AND i.assistant = 'global' AND i.persona = 'todas'
@@ -66,7 +95,8 @@ export async function buildReport(env: Env, runId: string) {
     indice_anterior: prev && !runId.includes('-teste-') ? { mes: prev.month, indice: prev.indice } : null,
     componentes: g ? { exatidao: g.exatidao, seguranca: g.seguranca, conformidade: g.conformidade, completude: g.completude, autoridade: g.autoridade, consistencia: g.consistencia } : null,
     por_assistente: idx.filter((i) => i.assistant !== 'global').map((i) => ({ assistente: label(i.assistant), indice: i.indice, respostas: i.responses })).sort((a, z) => (z.indice ?? 0) - (a.indice ?? 0)),
-    por_perfil: personas.map((p) => ({ perfil: p.persona, indice: p.indice, respostas: p.responses })),
+    por_perfil: personas.map((p) => ({ perfil: p.persona, indice: p.indice, respostas: p.responses, perguntas: qPorPerfil.find((x) => x.persona === p.persona)?.n ?? 0 })),
+    contexto,
     sinais: [1, 2, 3, 4].map((s) => ({ gravidade: s, nivel: SEVERITY_LABEL[s], n: sev.find((x) => x.severity === s)?.n ?? 0 })),
     mais_graves: top.map((t) => ({
       assistente: label(t.assistant), pergunta_id: t.question_id, pergunta: t.pergunta, perfil: t.persona,
@@ -124,7 +154,12 @@ ${r.farmacovigilancia ? `<p class="warn"><b>Farmacovigilância:</b> ${r.farmacov
 ${r.por_assistente.map((a) => `<tr><td>${esc(a.assistente)}</td><td>${fmt(a.indice)}</td><td style="width:40%"><div class="bar"><i style="width:${Math.max(0, Math.min(100, a.indice ?? 0))}%"></i></div></td><td>${a.respostas}</td></tr>`).join('')}</table>
 ${comp.length ? `<h2>Componentes do índice</h2><table>${comp.filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => `<tr><td>${k}</td><td>${pct(v)}</td><td style="width:50%"><div class="bar"><i style="width:${Math.round((v ?? 0) * 100)}%"></i></div></td></tr>`).join('')}</table>
 ${comp.some(([, v]) => v === null || v === undefined) ? `<p class="k" style="margin-top:10px">Sem dados nesta recolha: ${comp.filter(([, v]) => v === null || v === undefined).map(([k]) => (k === 'Consistência' ? 'consistência (exige duas ou mais repetições por pergunta)' : k.toLowerCase())).join(', ')}.</p>` : ''}` : ''}
-${r.por_perfil.length ? `<h2>Por perfil de quem pergunta</h2><table><tr><th>Perfil</th><th>Índice</th><th>Respostas</th></tr>${r.por_perfil.map((p) => `<tr><td>${esc(p.perfil)}</td><td>${fmt(p.indice)}</td><td>${p.respostas}</td></tr>`).join('')}</table>` : ''}
+${r.por_perfil.length ? `<h2>Por tipo de pergunta</h2><p class="k" style="margin-bottom:8px">Cada pergunta da bateria foi escrita como a faria um determinado perfil. A IA não sabe quem pergunta: o índice mostra a qualidade das respostas a cada tipo de pergunta. Perfis com menos de 3 perguntas são indicativos.</p>
+<table><tr><th>Perfil típico de quem pergunta</th><th>Índice</th><th>Perguntas</th><th>Respostas</th></tr>${r.por_perfil.map((p) => `<tr><td>${esc(p.perfil)}</td><td>${fmt(p.indice)}</td><td>${p.perguntas}${p.perguntas < 3 ? ' <span class="pill">indicativo</span>' : ''}</td><td>${p.respostas}</td></tr>`).join('')}</table>` : ''}
+${r.contexto ? `<h2>A IA muda a resposta conforme quem pergunta?</h2><p class="k" style="margin-bottom:8px">As mesmas perguntas-chave feitas sem contexto, começando por "Sou oftalmologista." e por "Sou doente.". Fora do índice principal.</p>
+<table><tr><th>Pergunta</th>${r.contexto.geral.map((g) => `<th>${esc(g.contexto)}</th>`).join('')}</tr>
+<tr><td><b>Todas</b></td>${r.contexto.geral.map((g) => `<td><b>${fmt(g.indice)}</b></td>`).join('')}</tr>
+${r.contexto.perguntas.map((q) => `<tr><td>${esc(q.pergunta_id)} · ${esc(q.pergunta)}</td>${q.valores.map((v) => `<td>${fmt(v)}</td>`).join('')}</tr>`).join('')}</table>` : ''}
 <h2>Sinais mais graves</h2>
 ${r.mais_graves.length ? r.mais_graves.map((f) => `<div class="f"><p><span class="pill c${f.gravidade}">${esc(f.nivel)}</span> <span class="pill">${esc(f.categoria)}</span> <span class="pill">${esc(f.assistente)}</span>${f.por_validar ? ' <span class="pill">em validação científica</span>' : ''}</p>
 <p class="q">${esc(f.pergunta_id)} · ${esc(f.perfil)}: ${esc(f.pergunta)}</p><p>«${esc(f.frase)}»</p></div>`).join('') : '<p class="k">Sem sinais de risco alto ou crítico nesta recolha.</p>'}

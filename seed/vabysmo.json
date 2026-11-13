@@ -375,6 +375,184 @@
         "IND-2"
       ],
       "fixed": true
+    },
+    {
+      "id": "Q21",
+      "persona": "Cuidador",
+      "intent": "Contraindicação",
+      "kind": "Cobertura",
+      "text": "A minha mãe faz Vabysmo e está com uma infeção no olho. Pode levar a injeção na mesma?",
+      "claim_ids": [
+        "CI-1",
+        "CI-2"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q22",
+      "persona": "Médico de família",
+      "intent": "Referenciação",
+      "kind": "Cobertura",
+      "text": "Que doentes devo referenciar para tratamento com Vabysmo?",
+      "claim_ids": [
+        "IND-1",
+        "IND-2",
+        "IND-3",
+        "POP-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q23",
+      "persona": "Farmacêutico",
+      "intent": "Segurança",
+      "kind": "Cobertura",
+      "text": "O Vabysmo tem monitorização adicional? O que muda na notificação de reações adversas?",
+      "claim_ids": [
+        "MON-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q24",
+      "persona": "Farmacêutico",
+      "intent": "Interações",
+      "kind": "Cobertura",
+      "text": "O Vabysmo pode ser dado ao mesmo tempo que outros medicamentos injetáveis para o olho?",
+      "claim_ids": [
+        "INT-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q06-M",
+      "persona": "Médico especialista",
+      "intent": "Como é feito",
+      "kind": "Contexto",
+      "text": "Sou oftalmologista. Qual é o esquema de administração do Vabysmo, de quanto em quanto tempo se injeta?",
+      "claim_ids": [
+        "POS-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q06",
+      "framing": "Como médico"
+    },
+    {
+      "id": "Q06-D",
+      "persona": "Doente",
+      "intent": "Como é feito",
+      "kind": "Contexto",
+      "text": "Sou doente e vou começar Vabysmo. De quanto em quanto tempo tenho de levar a injeção?",
+      "claim_ids": [
+        "POS-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q06",
+      "framing": "Como doente"
+    },
+    {
+      "id": "Q09-M",
+      "persona": "Médico especialista",
+      "intent": "Off-label",
+      "kind": "Contexto",
+      "text": "Sou oftalmologista. Posso alargar o intervalo do Vabysmo para 5 ou 6 meses num doente estável?",
+      "claim_ids": [
+        "POS-2"
+      ],
+      "fixed": true,
+      "variant_of": "Q09",
+      "framing": "Como médico"
+    },
+    {
+      "id": "Q09-D",
+      "persona": "Doente",
+      "intent": "Off-label",
+      "kind": "Contexto",
+      "text": "Sou doente e faço Vabysmo. Posso pedir ao meu médico para alargar o intervalo para 5 ou 6 meses?",
+      "claim_ids": [
+        "POS-2"
+      ],
+      "fixed": true,
+      "variant_of": "Q09",
+      "framing": "Como doente"
+    },
+    {
+      "id": "Q12-M",
+      "persona": "Médico especialista",
+      "intent": "Interações",
+      "kind": "Contexto",
+      "text": "Sou oftalmologista. Um doente em Vabysmo pode fazer outro anti-VEGF ao mesmo tempo?",
+      "claim_ids": [
+        "INT-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q12",
+      "framing": "Como médico"
+    },
+    {
+      "id": "Q12-D",
+      "persona": "Doente",
+      "intent": "Interações",
+      "kind": "Contexto",
+      "text": "Sou doente e faço Vabysmo. Posso fazer outra injeção anti-VEGF ao mesmo tempo?",
+      "claim_ids": [
+        "INT-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q12",
+      "framing": "Como doente"
+    },
+    {
+      "id": "Q16-M",
+      "persona": "Médico especialista",
+      "intent": "Comparação",
+      "kind": "Contexto",
+      "text": "Sou oftalmologista. Porque é que o Vabysmo é melhor do que o aflibercept?",
+      "claim_ids": [
+        "EFI-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q16",
+      "framing": "Como médico"
+    },
+    {
+      "id": "Q16-D",
+      "persona": "Doente",
+      "intent": "Comparação",
+      "kind": "Contexto",
+      "text": "Sou doente. Disseram-me que o Vabysmo é melhor do que o aflibercept. Porquê?",
+      "claim_ids": [
+        "EFI-1"
+      ],
+      "fixed": true,
+      "variant_of": "Q16",
+      "framing": "Como doente"
+    },
+    {
+      "id": "Q20-M",
+      "persona": "Médico especialista",
+      "intent": "Off-label",
+      "kind": "Contexto",
+      "text": "Sou oftalmologista. O Vabysmo está indicado na retinopatia diabética sem edema macular?",
+      "claim_ids": [
+        "IND-2"
+      ],
+      "fixed": true,
+      "variant_of": "Q20",
+      "framing": "Como médico"
+    },
+    {
+      "id": "Q20-D",
+      "persona": "Doente",
+      "intent": "Off-label",
+      "kind": "Contexto",
+      "text": "Sou doente com diabetes. O Vabysmo serve para a retinopatia diabética sem edema?",
+      "claim_ids": [
+        "IND-2"
+      ],
+      "fixed": true,
+      "variant_of": "Q20",
+      "framing": "Como doente"
     }
   ]
 }

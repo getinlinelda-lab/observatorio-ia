@@ -167,6 +167,19 @@ Sem domínio verificado, a Resend só envia para o email da própria conta. Para
 
 **Recolha manual** (Copilot, Google AI Overviews, Meta AI): abrir `https://observatorio-ia.getinlinelda.workers.dev/manual`, colar o token, escolher a marca e a recolha e carregar em "Ver tarefas". Cada resposta enviada entra na mesma avaliação.
 
+## Bateria v2 e variantes de contexto
+
+A bateria passou a ter pelo menos 3 perguntas por perfil (Q21 a Q24) e 10 variantes de contexto: as perguntas-chave Q06, Q09, Q12, Q16 e Q20 feitas também começando por "Sou oftalmologista." (`-M`) e por "Sou doente." (`-D`). As variantes ficam fora do índice principal; o relatório compara-as numa secção própria ("A IA muda a resposta conforme quem pergunta?").
+
+Aplicar uma vez:
+
+```bash
+npx wrangler d1 migrations apply observatorio-ia --remote
+npx wrangler d1 execute observatorio-ia --remote --file seed/vabysmo-bateria-v2.sql
+```
+
+O perfil de cada pergunta é atribuído por nós, quando a escrevemos: a IA não sabe quem pergunta. Por isso o relatório chama-lhe "perfil típico de quem pergunta".
+
 ## Usar no dia a dia
 
 ### Recolha mensal

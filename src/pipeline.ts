@@ -252,7 +252,7 @@ const jaccard = (a: string[], b: string[]) => {
   return [...A].filter((x) => B.has(x)).length / u.size;
 };
 
-function components(rows: any[]): Comp {
+export function components(rows: any[]): Comp {
   const ev = rows.reduce((a, r) => a + r.evaluated, 0);
   const cor = rows.reduce((a, r) => a + r.correct, 0);
   const tot = rows.reduce((a, r) => a + r.total_citations, 0);
@@ -290,7 +290,7 @@ function components(rows: any[]): Comp {
   };
 }
 
-function indexOf(c: Comp): number | null {
+export function indexOf(c: Comp): number | null {
   let w = 0, s = 0;
   (Object.keys(WEIGHTS) as (keyof typeof WEIGHTS)[]).forEach((k) => {
     const v = c[k];
@@ -308,10 +308,11 @@ export async function score(env: Env, runId: string) {
       `SELECT m.*, r.assistant, r.question_id, q.persona, q.kind
        FROM response_metrics m JOIN responses r ON r.id = m.response_id
        JOIN questions q ON q.brand_id = r.brand_id AND q.id = r.question_id
-       WHERE r.run_id = ? AND r.error IS NULL`,
+       WHERE r.run_id = ? AND r.error IS NULL AND q.variant_of IS NULL`,
     ).bind(runId).all<any>()
   ).results;
   if (!rows.length) return;
+  // As variantes de contexto ("Sou oftalmologista…") ficam fora do índice principal; o relatório compara-as à parte.
 
   const assistants = ['global', ...new Set(rows.map((r) => r.assistant))];
   const personas = ['todas', ...new Set(rows.map((r) => r.persona))];

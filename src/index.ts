@@ -67,8 +67,8 @@ async function upsertBrand(env: Env, body: any) {
   for (const q of body.questions ?? []) {
     stmts.push(
       env.DB.prepare(
-        `INSERT OR REPLACE INTO questions (brand_id, id, persona, intent, kind, text, claim_ids, fixed, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(body.id, q.id, q.persona, q.intent ?? null, q.kind ?? null, q.text, JSON.stringify(q.claim_ids ?? []), q.fixed === false ? 0 : 1, q.status ?? 'approved'),
+        `INSERT OR REPLACE INTO questions (brand_id, id, persona, intent, kind, text, claim_ids, fixed, status, variant_of, framing) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(body.id, q.id, q.persona, q.intent ?? null, q.kind ?? null, q.text, JSON.stringify(q.claim_ids ?? []), q.fixed === false ? 0 : 1, q.status ?? 'approved', q.variant_of ?? null, q.framing ?? null),
     );
   }
   await env.DB.batch(stmts);
