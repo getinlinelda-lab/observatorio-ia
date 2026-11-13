@@ -3,7 +3,7 @@
 import type { Citation, Env } from './env';
 import { ASSISTANT_LABELS } from './assistants';
 import { SEVERITY_LABEL } from './judge';
-import { components, domainType, indexOf } from './pipeline';
+import { components, diagnose, domainType, indexOf } from './pipeline';
 import { esc, sendEmail } from './notify';
 
 const J = <T>(s: string | null | undefined, d: T): T => {
@@ -81,6 +81,25 @@ export async function buildReport(env: Env, runId: string) {
     }),
   );
   const fv = await env.DB.prepare('SELECT COUNT(*) n FROM fv_alerts WHERE run_id = ?').bind(runId).first<{ n: number }>();
+  // Anexo: todos os sinais da recolha, com a justificação do avaliador e as fontes da resposta.
+  const all = (
+    await env.DB.prepare(
+      `SELECT s.response_id, s.idx, s.sentence, s.status, s.category, s.severity, s.needs_review, r.assistant, r.question_id, r.citations,
+              q.text AS pergunta, q.persona, q.variant_of, q.framing,
+              (SELECT e.rationale FROM evaluations e WHERE e.response_id = s.response_id AND e.idx = s.idx AND e.rationale <> '' ORDER BY e.severity DESC LIMIT 1) AS porque
+       FROM sentences s JOIN responses r ON r.id = s.response_id JOIN questions q ON q.brand_id = r.brand_id AND q.id = r.question_id
+       WHERE r.run_id = ? AND s.severity > 0 AND s.status IN ('incompleta', 'incorreta', 'off_label', 'comparativa_nao_suportada')
+       ORDER BY s.severity DESC, r.question_id, r.assistant LIMIT 1500`,
+    ).bind(runId).all<any>()
+  ).results;
+  // Plano de correção: cada sinal agrupado pela ação recomendada, a partir das fontes que a resposta citou.
+  const planMap = new Map<string, { acao: string; causa: string; sinais: number; graves: number; categorias: Set<string>; perguntas: Set<string> }>();
+  all.filter((t) => t.category).forEach((t) => {
+    const dx = diagnose(J<Citation[]>(t.citations, []), official);
+    const e = planMap.get(dx.action) ?? { acao: dx.action, causa: dx.cause, sinais: 0, graves: 0, categorias: new Set(), perguntas: new Set() };
+    e.sinais++; if (t.severity >= 3) e.graves++; e.categorias.add(CAT[t.category] ?? t.category); e.perguntas.add(t.variant_of ?? t.question_id);
+    planMap.set(dx.action, e);
+  });
   const g = idx.find((i) => i.assistant === 'global');
   return {
     run_id: runId,
@@ -108,6 +127,12 @@ export async function buildReport(env: Env, runId: string) {
       dominios: [...domains].sort((a, z) => z[1] - a[1]).slice(0, 8).map(([dominio, n]) => ({ dominio, n })),
     },
     farmacovigilancia: fv?.n ?? 0,
+    plano: [...planMap.values()].sort((a, z) => z.graves - a.graves || z.sinais - a.sinais).map((e) => ({ acao: e.acao, causa: e.causa, sinais: e.sinais, graves: e.graves, categorias: [...e.categorias], perguntas: [...e.perguntas].sort() })),
+    todos: all.map((t) => ({
+      assistente: label(t.assistant), pergunta_id: t.question_id, pergunta: t.pergunta, perfil: t.persona, contexto: t.framing ?? null,
+      categoria: CAT[t.category] ?? t.category ?? 'Imprecisão', gravidade: t.severity, nivel: SEVERITY_LABEL[t.severity], frase: t.sentence,
+      porque: t.porque ?? '', por_validar: !!t.needs_review, fontes: [...new Set(J<Citation[]>(t.citations, []).map((c) => c.domain))].slice(0, 4),
+    })),
   };
 }
 
@@ -139,7 +164,10 @@ td,th{text-align:left;padding:10px 8px;border-bottom:1px solid var(--h);vertical
 .warn{background:#fff4e5;color:#7a4b00;border-radius:12px;padding:12px 14px;font-size:14px;margin-top:16px}
 @media (prefers-color-scheme:dark){.warn{background:#3a2a10;color:#ffd79a}}
 footer{color:var(--t2);font-size:12px;margin-top:40px;border-top:1px solid var(--h);padding-top:14px}
-@media print{main{padding:0}.card{break-inside:avoid}}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}.filters select{font:inherit;font-size:14px;color:var(--t);background:var(--alt);border:1px solid var(--h);border-radius:10px;padding:7px 10px}
+.why{color:var(--t2);font-size:14px}.src{color:var(--t2);font-size:12px}.c1{background:var(--alt)}.c2{background:#ffd60a;color:#1d1d1f}
+details summary{cursor:pointer;color:var(--b);margin:6px 0 10px}
+@media print{main{padding:0}.card{break-inside:avoid}.filters{display:none}details{display:block}}
 </style></head><body><main>
 <p class="k">Observatório IA · relatório da recolha de ${esc(r.mes)}${r.teste ? ' · <b>recolha de teste</b>' : ''}</p>
 <h1>${esc(r.marca)} nas respostas da IA</h1>
@@ -166,6 +194,18 @@ ${r.mais_graves.length ? r.mais_graves.map((f) => `<div class="f"><p><span class
 <h2>De onde vem a informação</h2><table><tr><th>Tipo de fonte</th><th>Citações</th><th>%</th></tr>
 ${r.fontes.por_tipo.map((t) => `<tr><td>${esc(t.tipo)}</td><td>${t.n}</td><td>${fmt(t.pct)}%</td></tr>`).join('')}</table>
 ${r.fontes.dominios.length ? `<p class="k" style="margin-top:10px">Mais citados: ${r.fontes.dominios.map((d) => `${esc(d.dominio)} (${d.n})`).join(' · ')}</p>` : ''}
+${r.plano.length ? `<h2>Plano de correção</h2><p class="k" style="margin-bottom:8px">Ações recomendadas, por ordem de prioridade. Cada conteúdo é entregue pronto a publicar e segue a aprovação médica, legal e regulamentar do titular.</p>
+<table><tr><th>Ação recomendada</th><th>Porque acontece</th><th>Sinais</th><th>Alto/crítico</th><th>Perguntas</th></tr>
+${r.plano.map((p) => `<tr><td>${esc(p.acao)}<div class="src">${esc(p.categorias.join(' · '))}</div></td><td>${esc(p.causa)}</td><td>${p.sinais}</td><td>${p.graves}</td><td class="src">${esc(p.perguntas.join(', '))}</td></tr>`).join('')}</table>` : ''}
+${r.todos.length ? `<h2>Anexo: todos os sinais (${r.todos.length})</h2>
+<div class="filters" aria-label="Filtros"><select id="fa"><option value="">Todos os assistentes</option>${[...new Set(r.todos.map((t) => t.assistente))].map((a) => `<option>${esc(a)}</option>`).join('')}</select>
+<select id="fg"><option value="0">Todas as gravidades</option><option value="3">Alto e crítico</option><option value="2">Médio ou mais</option></select>
+<select id="fc"><option value="">Todas as áreas</option>${[...new Set(r.todos.map((t) => t.categoria))].map((c) => `<option>${esc(c)}</option>`).join('')}</select>
+<span class="k" id="fn"></span></div>
+<div id="all">${r.todos.map((f) => `<div class="f" data-a="${esc(f.assistente)}" data-g="${f.gravidade}" data-c="${esc(f.categoria)}"><p><span class="pill c${f.gravidade}">${esc(f.nivel)}</span> <span class="pill">${esc(f.categoria)}</span> <span class="pill">${esc(f.assistente)}</span>${f.contexto ? ` <span class="pill">${esc(f.contexto)}</span>` : ''}${f.por_validar ? ' <span class="pill">em validação científica</span>' : ''}</p>
+<p class="q">${esc(f.pergunta_id)} · ${esc(f.perfil)}: ${esc(f.pergunta)}</p><p>«${esc(f.frase)}»</p>${f.porque ? `<p class="why">Porquê: ${esc(f.porque)}</p>` : ''}${f.fontes.length ? `<p class="src">Fontes citadas na resposta: ${f.fontes.map(esc).join(' · ')}</p>` : '<p class="src">A resposta não citou fontes.</p>'}</div>`).join('')}</div>
+<script>(()=>{const a=document.getElementById('fa'),g=document.getElementById('fg'),c=document.getElementById('fc'),n=document.getElementById('fn');const items=[...document.querySelectorAll('#all .f')];
+const run=()=>{let k=0;items.forEach(e=>{const ok=(!a.value||e.dataset.a===a.value)&&(+e.dataset.g>=+g.value)&&(!c.value||e.dataset.c===c.value);e.hidden=!ok;if(ok)k++});n.textContent=k+' de '+items.length};[a,g,c].forEach(x=>x.addEventListener('change',run));run()})();</script>` : ''}
 <footer><p>Sinais gerados por um processo automático com dois avaliadores independentes; os de risco alto e crítico estão sujeitos a validação científica. Não constitui avaliação regulamentar nem aconselhamento médico. Respostas obtidas por API, que podem diferir das versões públicas das aplicações.</p>
 <p style="margin-top:6px">Recolha ${esc(r.run_id)} · concluída ${esc(r.concluida ?? '')} UTC · documento confidencial, para uso interno do titular.</p></footer>
 </main></body></html>`;

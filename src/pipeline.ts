@@ -129,7 +129,7 @@ const CAUSES = {
   modelo: { cause: 'Erro do modelo sem fonte que o justifique', action: 'Registar, monitorizar e usar os canais de feedback do assistente' },
 };
 
-function diagnose(citations: Citation[], official: string[]) {
+export function diagnose(citations: Citation[], official: string[]) {
   if (!citations.length) return CAUSES.modelo;
   const off = citations.filter((c) => isOfficial(c.domain, official)).length;
   if (off === 0 && citations.some((c) => c.domain.endsWith('.br'))) return CAUSES.mercado;
@@ -332,8 +332,9 @@ export async function score(env: Env, runId: string) {
   }
 
   // Achados que não voltaram a aparecer neste mês, nos assistentes recolhidos, passam a resolvidos.
+  // Só numa recolha completa: um teste com poucas perguntas não pode dar por resolvido o que não voltou a perguntar.
   const collected = [...new Set(rows.map((r) => r.assistant))];
-  stmts.push(
+  if (!runId.includes('-teste-')) stmts.push(
     env.DB.prepare(
       `UPDATE findings SET status = 'resolved' WHERE brand_id = ? AND status = 'open' AND last_seen < ? AND assistant IN (SELECT value FROM json_each(?))`,
     ).bind(run.brand_id, run.month, JSON.stringify(collected)),
