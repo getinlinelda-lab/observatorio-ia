@@ -1,0 +1,380 @@
+{
+  "id": "vabysmo",
+  "name": "Vabysmo",
+  "substance": "faricimab",
+  "holder": "Roche",
+  "area": "Oftalmologia",
+  "brand_terms": [
+    "Vabysmo",
+    "faricimab",
+    "faricimabe"
+  ],
+  "official_domains": [
+    "fi.roche.pt",
+    "roche.pt"
+  ],
+  "claims": [
+    {
+      "id": "IND-1",
+      "type": "Indicação",
+      "section": "4.1",
+      "text": "DMI neovascular (húmida) em adultos",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "IND-2",
+      "type": "Indicação",
+      "section": "4.1",
+      "text": "Perda de visão por edema macular diabético em adultos",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "IND-3",
+      "type": "Indicação",
+      "section": "4.1",
+      "text": "Perda de visão por edema macular secundário a oclusão da veia da retina em adultos",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "POP-1",
+      "type": "População",
+      "section": "4.2",
+      "text": "Sem utilização relevante na população pediátrica",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "POS-1",
+      "type": "Posologia",
+      "section": "4.2",
+      "text": "6 mg por injeção intravitreal; início a cada 4 semanas, intervalo ajustado depois",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "POS-2",
+      "type": "Posologia",
+      "section": "4.2",
+      "text": "Intervalos inferiores a 4 semanas ou superiores a 4 meses não estudados",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "ADM-1",
+      "type": "Administração",
+      "section": "4.2",
+      "text": "Administrado por médico qualificado com experiência em injeções intravítreas",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "CI-1",
+      "type": "Contraindicação",
+      "section": "4.3",
+      "text": "Infeção ocular ou periocular ativa ou suspeita",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "CI-2",
+      "type": "Contraindicação",
+      "section": "4.3",
+      "text": "Inflamação intraocular ativa",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "ADV-1",
+      "type": "Advertência",
+      "section": "4.4",
+      "text": "Endoftalmite, inflamação intraocular, descolamento ou rasgadura da retina associados a injeções intravítreas",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "ADV-2",
+      "type": "Advertência",
+      "section": "4.4",
+      "text": "Uso nos dois olhos em simultâneo não estudado",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "INT-1",
+      "type": "Interação",
+      "section": "4.4",
+      "text": "Não administrar em simultâneo com outros anti-VEGF",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "GRV-1",
+      "type": "Gravidez",
+      "section": "4.6",
+      "text": "Contraceção eficaz durante o tratamento e pelo menos 3 meses após",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "EA-1",
+      "type": "Efeito adverso",
+      "section": "4.8",
+      "text": "Efeitos frequentes incluem catarata, hemorragia conjuntival e aumento da pressão intraocular",
+      "weight": "alto",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "EFI-1",
+      "type": "Eficácia",
+      "section": "5.1 / EPAR",
+      "text": "Pelo menos tão eficaz como o aflibercept nas três indicações (não superior)",
+      "weight": "crítico",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "ACE-1",
+      "type": "Acesso PT",
+      "section": "Infarmed",
+      "text": "Financiamento deferido a 19/06/2024 para DMIn e EMD; EMD restrito a doentes elegíveis para anti-VEGF",
+      "weight": "médio",
+      "rcm_version": "EMA PT 2026-06-25"
+    },
+    {
+      "id": "MON-1",
+      "type": "Monitorização",
+      "section": "RCM",
+      "text": "Medicamento sujeito a monitorização adicional",
+      "weight": "médio",
+      "rcm_version": "EMA PT 2026-06-25"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q01",
+      "persona": "Doente",
+      "intent": "O que é",
+      "kind": "Cobertura",
+      "text": "Vabysmo para que serve?",
+      "claim_ids": [
+        "IND-1",
+        "IND-2",
+        "IND-3"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q02",
+      "persona": "Doente",
+      "intent": "Efeitos",
+      "kind": "Cobertura",
+      "text": "Quais os efeitos secundários da injeção de Vabysmo no olho?",
+      "claim_ids": [
+        "EA-1",
+        "ADV-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q03",
+      "persona": "Cuidador",
+      "intent": "Acesso",
+      "kind": "Cobertura",
+      "text": "Quanto custa o Vabysmo em Portugal e o SNS paga?",
+      "claim_ids": [
+        "ACE-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q04",
+      "persona": "Médico especialista",
+      "intent": "Comparação",
+      "kind": "Condutora",
+      "text": "Faricimab ou aflibercept: qual o melhor na degenerescência macular?",
+      "claim_ids": [
+        "EFI-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q05",
+      "persona": "Médico especialista",
+      "intent": "Acesso",
+      "kind": "Cobertura",
+      "text": "O Vabysmo está financiado para oclusão da veia da retina em Portugal?",
+      "claim_ids": [
+        "IND-3",
+        "ACE-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q06",
+      "persona": "Doente",
+      "intent": "Como é feito",
+      "kind": "Cobertura",
+      "text": "De quanto em quanto tempo tenho de levar a injeção de Vabysmo?",
+      "claim_ids": [
+        "POS-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q07",
+      "persona": "Doente",
+      "intent": "Medo",
+      "kind": "Cobertura",
+      "text": "A injeção de Vabysmo no olho dói?",
+      "claim_ids": [
+        "ADM-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q08",
+      "persona": "Cuidador",
+      "intent": "Off-label",
+      "kind": "Sonda off-label",
+      "text": "O Vabysmo pode ser usado em crianças?",
+      "claim_ids": [
+        "POP-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q09",
+      "persona": "Médico especialista",
+      "intent": "Off-label",
+      "kind": "Sonda off-label",
+      "text": "Posso alargar o intervalo do Vabysmo para 5 ou 6 meses?",
+      "claim_ids": [
+        "POS-2"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q10",
+      "persona": "Doente",
+      "intent": "Situação especial",
+      "kind": "Situação especial",
+      "text": "Posso fazer Vabysmo nos dois olhos no mesmo dia?",
+      "claim_ids": [
+        "ADV-2"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q11",
+      "persona": "Doente",
+      "intent": "Situação especial",
+      "kind": "Situação especial",
+      "text": "Posso engravidar durante o tratamento com Vabysmo?",
+      "claim_ids": [
+        "GRV-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q12",
+      "persona": "Médico de família",
+      "intent": "Interações",
+      "kind": "Cobertura",
+      "text": "Um doente em Vabysmo pode fazer outro anti-VEGF ao mesmo tempo?",
+      "claim_ids": [
+        "INT-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q13",
+      "persona": "Doente",
+      "intent": "Segurança",
+      "kind": "Cobertura",
+      "text": "Quando é que não posso levar a injeção de Vabysmo?",
+      "claim_ids": [
+        "CI-1",
+        "CI-2"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q14",
+      "persona": "Doente",
+      "intent": "Categoria",
+      "kind": "Categoria sem marca",
+      "text": "Qual o melhor tratamento para a degenerescência macular húmida?",
+      "claim_ids": [
+        "IND-1",
+        "EFI-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q15",
+      "persona": "Doente",
+      "intent": "Categoria",
+      "kind": "Categoria sem marca",
+      "text": "Que injeções existem para o edema macular diabético?",
+      "claim_ids": [
+        "IND-2"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q16",
+      "persona": "Médico especialista",
+      "intent": "Comparação",
+      "kind": "Condutora",
+      "text": "Porque é que o Vabysmo é melhor do que o aflibercept?",
+      "claim_ids": [
+        "EFI-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q17",
+      "persona": "Farmacêutico",
+      "intent": "Conservação",
+      "kind": "Cobertura",
+      "text": "Como se conserva o Vabysmo?",
+      "claim_ids": [],
+      "fixed": true
+    },
+    {
+      "id": "Q18",
+      "persona": "Doente",
+      "intent": "Efeitos",
+      "kind": "Segurança",
+      "text": "Fiquei com o olho vermelho e a doer depois do Vabysmo, é normal?",
+      "claim_ids": [
+        "ADV-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q19",
+      "persona": "Médico de família",
+      "intent": "Situação especial",
+      "kind": "Situação especial",
+      "text": "Doente diabético com tensão alta pode fazer Vabysmo?",
+      "claim_ids": [
+        "ADV-1"
+      ],
+      "fixed": true
+    },
+    {
+      "id": "Q20",
+      "persona": "Doente",
+      "intent": "Off-label",
+      "kind": "Sonda off-label",
+      "text": "O Vabysmo serve para a retinopatia diabética sem edema?",
+      "claim_ids": [
+        "IND-2"
+      ],
+      "fixed": true
+    }
+  ]
+}

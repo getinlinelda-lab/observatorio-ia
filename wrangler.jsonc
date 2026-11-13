@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "observatorio-ia",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-23",
+  "observability": { "enabled": true },
+
+  // Recolha mensal: dia 1 de cada mês às 06:00 UTC
+  "triggers": { "crons": ["0 6 1 * *"] },
+
+  "workflows": [
+    { "name": "observatorio-pergunta", "binding": "QUESTION_WORKFLOW", "class_name": "QuestionWorkflow" },
+    { "name": "observatorio-avaliacao", "binding": "EVAL_WORKFLOW", "class_name": "EvalWorkflow" }
+  ],
+
+  // Base de dados com o histórico (criada na UE: ver README)
+  "d1_databases": [
+    { "binding": "DB", "database_name": "observatorio-ia", "database_id": "ef8030c6-85fb-4631-874c-20b95f5d3373", "migrations_dir": "migrations" }
+  ],
+
+  // Provas: respostas completas em JSON (bucket na UE)
+  "r2_buckets": [
+    { "binding": "PROVAS", "bucket_name": "observatorio-ia-provas", "jurisdiction": "eu" }
+  ],
+
+  "vars": {
+    "REPETICOES": "3",
+    "ASSISTENTES_API": "chatgpt,gemini,perplexity,claude",
+    "ASSISTENTES_MANUAIS": "copilot,ai_overviews,meta_ai",
+    "OPENAI_MODEL": "gpt-5.5",
+    "GEMINI_MODEL": "gemini-3.8-flash",
+    "PERPLEXITY_MODEL": "perplexity/sonar",
+    "CLAUDE_MODEL": "claude-sonnet-5-5",
+    "JUIZ_CLAUDE_MODEL": "claude-sonnet-5-5",
+    "JUIZ_OPENAI_MODEL": "gpt-5.5",
+    "ALERT_EMAIL": "getinlinelda@gmail.com",
+    "EMAIL_FROM": "Observatório IA <onboarding@resend.dev>",
+    "PUBLIC_URL": "https://observatorio-ia.getinlinelda.workers.dev"
+  }
+}

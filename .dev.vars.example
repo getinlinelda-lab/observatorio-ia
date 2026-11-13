@@ -1,0 +1,6 @@
+# Copiar para .dev.vars para testar localmente. Em produção usar: npx wrangler secret put NOME
+API_TOKEN=um-token-longo-e-aleatorio
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+PERPLEXITY_API_KEY=
+ANTHROPIC_API_KEY=
